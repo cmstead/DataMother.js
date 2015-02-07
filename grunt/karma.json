@@ -1,0 +1,5 @@
+{
+    "dev": {
+        "configFile": "./spec/karma.config.js"
+    }
+}

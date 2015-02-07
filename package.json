@@ -1,0 +1,24 @@
+{
+    "name": "datamother",
+    "description": "DataMother.js - A data management and injection system for easier unit testing",
+    "main": "dist/data-mother.js",
+    "version": "1.0.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cmstead/DataMother.js.git"
+    },
+    "devDependencies": {
+        "grunt": "^0.4.5",
+        "grunt-contrib-clean": "^0.6.0",
+        "grunt-contrib-copy": "^0.7.0",
+        "grunt-contrib-jshint": "^0.10.0",
+        "grunt-karma": "^0.9.0",
+        "jshint": "^2.5.6",
+        "karma": "^0.12.24",
+        "karma-coverage": "^0.2.6",
+        "karma-jasmine": "^0.1.5",
+        "karma-phantomjs-launcher": "^0.1.4",
+        "lodash": "^2.4.1",
+        "phantomjs": "^1.9.10"
+    }
+}

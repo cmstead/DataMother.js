@@ -1,0 +1,3 @@
+{
+    "clean": ["scripts/concat/*.js", "dist/*.js", "jfp.js"]
+}
