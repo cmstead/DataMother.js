@@ -9,7 +9,8 @@ DataMother.js will tentatively be released under the MIT license and will always
 DataMother.js will follow the to-do list below.  This is the first round of to-dos and it may grow
 or change over time.
 
-- [ ] Register data objects -- register(key, value);
-- [ ] Get a single instance of a data object -- get(key, options);
-- [ ] Get an array of instances of a single data object -- getArrayOf(key, options);
-- [ ] Handle initialization functions and static values as defined in data object mother files (Motherfiles)
+- [x] Register data objects -- register(key, value);
+- [x] Get a single instance of a data object -- get(key, options);
+- [x] Get an array of instances of a single data object -- getArrayOf(key, options);
+- [x] Handle initialization functions and static values as defined in data object mother files (Motherfiles)
+- [ ] Resolve options passed to build functions

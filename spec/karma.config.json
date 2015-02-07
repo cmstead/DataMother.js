@@ -13,7 +13,7 @@
     ],
 
     "preprocessors": {
-        "../scripts/src/modules/**/*.js": ["coverage"]
+        "../scripts/src/**/*.js": ["coverage"]
     },
 
     "coverageReporter": {
