@@ -13,4 +13,4 @@ or change over time.
 - [x] Get a single instance of a data object -- get(key, options);
 - [x] Get an array of instances of a single data object -- getArrayOf(key, options);
 - [x] Handle initialization functions and static values as defined in data object mother files (Motherfiles)
-- [ ] Resolve options passed to build functions
+- [x] Resolve options passed to build functions
