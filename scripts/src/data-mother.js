@@ -5,27 +5,29 @@ var dataMother;
 
     var data = {};
 
-    function build(key){
+    function build(key, options){
         var finalObject = {},
+            sanitizedOptions = (!!options) ? options : {},
             index,
             tempValue;
 
         for(index in data[key]){
             tempValue = data[key][index];
 
-            finalObject[index] = typeof tempValue !== 'function' ? tempValue : tempValue();
+            finalObject[index] = typeof tempValue !== 'function' ?
+                                    tempValue : tempValue(sanitizedOptions[index]);
         }
 
         return finalObject;
     }
 
-    function buildArrayOf(key, count){
+    function buildArrayOf(key, count, options){
         var arraySize = typeof count === 'number' ? count : 1,
             outputArray = [],
             index = 0;
 
         while(index < arraySize){
-            outputArray.push(build(key));
+            outputArray.push(build(key, options));
             index++;
         }
 

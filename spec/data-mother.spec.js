@@ -26,6 +26,28 @@
                 expect(typeof testValue.id).toBe('number');
             });
 
+            it('should execute initialization functions with option values', function(){
+                var passedValue,
+                    testPrototype = {
+                        id: 1,
+                        testValue: ''
+                    };
+
+                function init(options){
+                    passedValue = options;
+                }
+
+                testPrototype.testValue = init;
+
+                dataMother.register('testObj', testPrototype);
+
+                dataMother.build('testObj', {
+                    testValue: 'foo'
+                });
+
+                expect(passedValue).toBe('foo');
+            });
+
         });
 
         describe('buildArrayOf', function(){
@@ -43,6 +65,28 @@
 
             it('should return an array of objects', function(){
                 expect(dataMother.buildArrayOf('testKey', 5).length).toBe(5);
+            });
+
+            it('should call build with provided options', function(){
+                var passedValue = [],
+                testPrototype = {
+                    id: 1,
+                    testValue: ''
+                };
+
+                function init(options){
+                    passedValue.push(options);
+                }
+
+                testPrototype.testValue = init;
+
+                dataMother.register('testObj', testPrototype);
+
+                dataMother.buildArrayOf('testObj', 3, {
+                    testValue: 'foo'
+                });
+
+                expect(JSON.stringify(passedValue)).toBe('["foo","foo","foo"]');
             });
 
         });
