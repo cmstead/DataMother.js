@@ -18,7 +18,7 @@ var dataMother;
                                     tempValue : tempValue(sanitizedOptions[index]);
         }
 
-        return finalObject;
+        return Object.create(finalObject);
     }
 
     function buildArrayOf(key, count, options){
