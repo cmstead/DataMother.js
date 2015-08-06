@@ -18,7 +18,7 @@ var dataMother;
                                     tempValue : tempValue(sanitizedOptions[index]);
         }
 
-        return finalObject;
+        return Object.create(finalObject);
     }
 
     function buildArrayOf(key, count, options){
@@ -45,3 +45,11 @@ var dataMother;
     };
 
 })();
+
+// This will prevent dataMother from throwing a fit
+// if it is being run in a browser environment.
+// If it is not in a browser, we'll export this
+// for use in node.
+if(!window){
+    module.exports = dataMother;
+}
