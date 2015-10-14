@@ -50,6 +50,6 @@ var dataMother;
 // if it is being run in a browser environment.
 // If it is not in a browser, we'll export this
 // for use in node.
-if(!window){
+if(typeof module !== 'undefined' && module.exports){
     module.exports = dataMother;
 }
