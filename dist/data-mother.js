@@ -5,6 +5,10 @@ var dataMother;
 
     var data = {};
 
+    function create(value){
+        return typeof value === 'object' ? Object.create(value) : value;
+    }
+
     function build(key, options){
         var finalObject = {},
             sanitizedOptions = (!!options) ? options : {},
@@ -15,10 +19,10 @@ var dataMother;
             tempValue = data[key][index];
 
             finalObject[index] = typeof tempValue !== 'function' ?
-                                    tempValue : tempValue(sanitizedOptions[index]);
+                                    create(tempValue) : tempValue(sanitizedOptions[index]);
         }
 
-        return Object.create(finalObject);
+        return finalObject;
     }
 
     function buildArrayOf(key, count, options){
