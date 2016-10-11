@@ -1,44 +1,86 @@
 var dataMother;
 
-(function(){
+(function () {
     'use strict';
 
     var data = {};
 
-    function create(value){
-        return typeof value === 'object' ? Object.create(value) : value;
+    function isTypeOf(typeStr) {
+        return function (value) {
+            return typeof value === typeStr;
+        };
     }
 
-    function build(key, options){
-        var finalObject = {},
-            sanitizedOptions = (!!options) ? options : {},
-            index,
-            tempValue;
-
-        for(index in data[key]){
-            tempValue = data[key][index];
-
-            finalObject[index] = typeof tempValue !== 'function' ?
-                                    create(tempValue) : tempValue(sanitizedOptions[index]);
-        }
-
-        return finalObject;
+    function getTypeCheck(check) {
+        return isTypeOf('function')(check) ? check : isTypeOf(check);
     }
 
-    function buildArrayOf(key, count, options){
-        var arraySize = typeof count === 'number' ? count : 1,
-            outputArray = [],
-            index = 0;
-
-        while(index < arraySize){
-            outputArray.push(build(key, options));
-            index++;
-        }
-
-        return outputArray;
+    function isSafeObject(value) {
+        return isTypeOf('object')(value) && value !== null;
     }
 
-    function register(key, value){
+    function either(type) {
+        var typeCheck = getTypeCheck(type);
+
+        return function (fallback) {
+            return function (value) {
+                return typeCheck(value) ? value : fallback;
+            };
+        };
+    }
+
+    function repeat (operation){
+        return function (count) {
+            for(count; count > 0; count--){
+                operation();
+            }
+        };
+    }
+
+    function create(value) {
+        return isTypeOf('object')(value) ? Object.create(value) : value;
+    }
+
+    function set(obj) {
+        return function (key, value) {
+            obj[key] = value;
+            return obj;
+        };
+    }
+
+    function buildProperty(dataObj, index, options) {
+        var tempValue = dataObj[index];
+
+        return isTypeOf('function')(tempValue) ?
+            tempValue(options[index]) :
+            create(tempValue);
+    }
+
+    function buildAddProperty(dataObj, options) {
+        return function (finalObject, index) {
+            var newObj = buildProperty(dataObj, index, options);
+            return set(finalObject)(index, newObj);
+        };
+    }
+
+    function build(key, options) {
+        var cleanOptions = either(isSafeObject)({})(options);
+        var addProperty = buildAddProperty(data[key], cleanOptions);
+
+        return Object.keys(data[key]).reduce(addProperty, {});
+    }
+
+    function buildArrayOf(key, count, options) {
+        var result = [];
+
+        repeat(function () {
+            result.push(build(key, options));
+        })(either('number')(1)(count));
+
+        return result;
+    }
+
+    function register(key, value) {
         data[key] = value;
     }
 
@@ -54,6 +96,6 @@ var dataMother;
 // if it is being run in a browser environment.
 // If it is not in a browser, we'll export this
 // for use in node.
-if(typeof module !== 'undefined' && module.exports){
+if (typeof module !== 'undefined' && module.exports) {
     module.exports = dataMother;
 }
