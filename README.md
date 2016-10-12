@@ -19,20 +19,29 @@ or change over time.
 ##API
 
 dataMother.register
-(<string> key, <object> motherObject) -> undefined
+`key, motherObject => undefined`
 
 Register registers a mother object with DataMother for data creation later. Register requires a key and an object and returns undefined.
 
 dataMother.build
-(<string> key[, <object> options]) -> object
+`key, [options] => object`
 
 Build requires a key and accepts options if they are used by a mother definition. Build returns a new instance of an object as well as nested instances of depency objects.
 
 dataMother.buildArrayOf
-(<string> key[, <int> count[, <object> options]]) -> object[]
+`key, [count], [options] => array<object>`
 
 BuildArrayOf requires a key and, by default, returns an array of object instances containing 1 object. Count is the number of instances you need in your array, all values 0 and greater are valid. Options are instance options similar to build.
 
+dataMother.require
+`key => options => object`
+
+Require is used to declare nested dependencies within mother objects.
+
+dataMother.requireArrayOf
+`key => options => array<object>`
+
+RequireArrayOf is used to declare dependency arrays within mother objects.
 
 ##Examples
 
@@ -69,10 +78,8 @@ A more complex example of a mother file might be like this, using the example ab
 			id: function(){
 				return Math.random() * 1000000;
 			},
-		    myDataArray: function(options){
-				//Note the reference to a dependency, though a build call
-				return dataMother.buildArrayOf('myData', options.count);
-			}
+            myDataProperty: dataMother.require('myData'),
+		    myDataArray: dataMother.requireArrayOf('myData')
 		};
 		
 		//Best practice is to define the object with the key you register it with.
@@ -83,7 +90,7 @@ A more complex example of a mother file might be like this, using the example ab
 This is what the build looks like for more complex mother objects:
 
     //Please note, the options references the key defined in the mother file
-	var myComplexTestData = dataMother.build('myComplexData', { myDataArray: { count: 3 } });
+	var myComplexTestData = dataMother.build('myComplexData', { myDataArray: { _count: 3 } });
 	
 	//You can also build an array of myComplexData instances
-	var myComplexTestDataArray = dataMother.build('myComplexData', 2, { myDataArray: { count: 5 } });
+	var myComplexTestDataArray = dataMother.build('myComplexData', 2, { myDataArray: { _count: 5 } });

@@ -1,39 +1,39 @@
-(function(){
+(function () {
     'use strict';
 
-    describe('dataMother', function(){
+    describe('dataMother', function () {
 
-        it('should be an object', function(){
+        it('should be an object', function () {
             expect(typeof dataMother).toBe('object');
         });
 
-        describe('build', function(){
+        describe('build', function () {
 
-            beforeEach(function(){
+            beforeEach(function () {
                 dataMother.register('testKey', {
-                    id: function(){ return Math.floor(Math.random() * 100); },
+                    id: function () { return Math.floor(Math.random() * 100); },
                     value: 'static value'
                 });
             });
 
-            it('should return an instance of the object stored at the key', function(){
+            it('should return an instance of the object stored at the key', function () {
                 expect(typeof dataMother.build('testKey')).toBe('object');
             });
 
-            it('should execute initialization functions', function(){
+            it('should execute initialization functions', function () {
                 var testValue = dataMother.build('testKey');
 
                 expect(typeof testValue.id).toBe('number');
             });
 
-            it('should execute initialization functions with option values', function(){
+            it('should execute initialization functions with option values', function () {
                 var passedValue,
                     testPrototype = {
                         id: 1,
                         testValue: ''
                     };
 
-                function init(options){
+                function init(options) {
                     passedValue = options;
                 }
 
@@ -50,31 +50,31 @@
 
         });
 
-        describe('buildArrayOf', function(){
+        describe('buildArrayOf', function () {
 
-            beforeEach(function(){
+            beforeEach(function () {
                 dataMother.register('testKey', {
-                    id: function(){ return Math.floor(Math.random() * 100); },
+                    id: function () { return Math.floor(Math.random() * 100); },
                     value: 'test value'
                 });
             });
 
-            it('should return an array containing a single object when no value is provided', function(){
+            it('should return an array containing a single object when no value is provided', function () {
                 expect(dataMother.buildArrayOf('testKey').length).toBe(1);
             });
 
-            it('should return an array of objects', function(){
+            it('should return an array of objects', function () {
                 expect(dataMother.buildArrayOf('testKey', 5).length).toBe(5);
             });
 
-            it('should call build with provided options', function(){
+            it('should call build with provided options', function () {
                 var passedValue = [],
-                testPrototype = {
-                    id: 1,
-                    testValue: ''
-                };
+                    testPrototype = {
+                        id: 1,
+                        testValue: ''
+                    };
 
-                function init(options){
+                function init(options) {
                     passedValue.push(options);
                 }
 
@@ -91,12 +91,43 @@
 
         });
 
-        describe('register', function(){
+        describe('register', function () {
 
-            it('should register an object to the system', function(){
+            it('should register an object to the system', function () {
                 dataMother.register('registrationTest', {});
 
                 expect(typeof dataMother.build('registrationTest')).toBe('object');
+            });
+
+        });
+
+        describe('require', function () {
+
+            it('should return a function which returns an object', function () {
+                dataMother.register('requireTest', { foo: function (value) { return value } });
+                var options = {
+                    foo: 'bar'
+                };
+
+                var result = dataMother.require('requireTest')(options);
+
+                expect(JSON.stringify(result)).toBe('{"foo":"bar"}');
+            });
+
+        });
+
+        describe('requireArrayOf', function () {
+
+            it('should return a function returning an array of two elements', function () {
+                dataMother.register('requireTest', { foo: function (value) { return value } });
+                var options = {
+                    _count: 2,
+                    foo: 'bar'
+                };
+
+                var result = dataMother.requireArrayOf('requireTest')(options);
+
+                expect(JSON.stringify(result)).toBe('[{"foo":"bar"},{"foo":"bar"}]');
             });
 
         });

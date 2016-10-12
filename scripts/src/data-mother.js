@@ -19,6 +19,10 @@ var dataMother;
         return isTypeOf('object')(value) && value !== null;
     }
 
+    function isInt (value){
+        return isTypeOf('number')(value) && Math.floor(value) === value;
+    }
+
     function either(type) {
         var typeCheck = getTypeCheck(type);
 
@@ -84,10 +88,32 @@ var dataMother;
         data[key] = value;
     }
 
+    function require (key){
+        return function (options) {
+            return build(key, options);
+        };
+    }
+
+    function getCount (key, options){
+        var cleanOptions = either(isSafeObject)({})(options);
+
+        return either(isInt)(1)(cleanOptions._count);
+    }
+
+    function requireArrayOf (key){
+        return function (options) {
+            var count = getCount(key, options);
+
+            return buildArrayOf(key, count, options);
+        };
+    }
+
     dataMother = {
         build: build,
         buildArrayOf: buildArrayOf,
-        register: register
+        register: register,
+        require: require,
+        requireArrayOf: requireArrayOf
     };
 
 })();
