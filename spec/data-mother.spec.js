@@ -113,6 +113,23 @@ var dataMother = require('../scripts/src/data-mother');
 
             });
 
+            it('should build an array of elements using the repeat index as a value option', function () {
+                
+                var testPrototype = {
+                    index: function (_, index) {
+                        return index;
+                    }
+                };
+
+                dataMother.register('singleVal', testPrototype);
+
+                var result = JSON.stringify(dataMother.build('singleVal'))
+                var expected = JSON.stringify({index: 0});
+
+                assert.equal(result, expected);
+
+            });
+
         });
 
         describe('register', function () {

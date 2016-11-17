@@ -70,7 +70,7 @@ var dataMother = (function () {
         var cleanIndex = isTypeOf('number')(index) ? index : 0;
 
         return Object.keys(data[key])
-            .reduce(buildAddProperty(data[key], cleanOptions, index), {});
+            .reduce(buildAddProperty(data[key], cleanOptions, cleanIndex), {});
     }
 
     function buildArrayOf(key, count, options) {
