@@ -1,6 +1,4 @@
-var dataMother;
-
-(function () {
+var dataMother = (function () {
     'use strict';
 
     var data = {};
@@ -35,8 +33,8 @@ var dataMother;
 
     function repeat (operation){
         return function (count) {
-            for(count; count > 0; count--){
-                operation();
+            for(var i = 0; i < count; i++){
+                operation(i);
             }
         };
     }
@@ -52,33 +50,34 @@ var dataMother;
         };
     }
 
-    function buildProperty(dataObj, index, options) {
-        var tempValue = dataObj[index];
+    function buildProperty(dataObj, key, options, index) {
+        var tempValue = dataObj[key];
 
         return isTypeOf('function')(tempValue) ?
-            tempValue(options[index]) :
+            tempValue(options[key], index) :
             create(tempValue);
     }
 
-    function buildAddProperty(dataObj, options) {
-        return function (finalObject, index) {
-            var newObj = buildProperty(dataObj, index, options);
-            return set(finalObject)(index, newObj);
+    function buildAddProperty(dataObj, options, index) {
+        return function (finalObject, key) {
+            var newObj = buildProperty(dataObj, key, options, index);
+            return set(finalObject)(key, newObj);
         };
     }
 
-    function build(key, options) {
+    function build(key, options, index) {
         var cleanOptions = either(isSafeObject)({})(options);
-        var addProperty = buildAddProperty(data[key], cleanOptions);
+        var cleanIndex = isTypeOf('number')(index) ? index : 0;
 
-        return Object.keys(data[key]).reduce(addProperty, {});
+        return Object.keys(data[key])
+            .reduce(buildAddProperty(data[key], cleanOptions, index), {});
     }
 
     function buildArrayOf(key, count, options) {
         var result = [];
 
-        repeat(function () {
-            result.push(build(key, options));
+        repeat(function (index) {
+            result.push(build(key, options, index));
         })(either('number')(1)(count));
 
         return result;
@@ -108,7 +107,7 @@ var dataMother;
         };
     }
 
-    dataMother = {
+    return {
         build: build,
         buildArrayOf: buildArrayOf,
         register: register,

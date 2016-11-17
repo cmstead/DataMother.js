@@ -1,51 +1,118 @@
-var dataMother;
-
-(function(){
+var dataMother = (function () {
     'use strict';
 
     var data = {};
 
-    function create(value){
-        return typeof value === 'object' ? Object.create(value) : value;
+    function isTypeOf(typeStr) {
+        return function (value) {
+            return typeof value === typeStr;
+        };
     }
 
-    function build(key, options){
-        var finalObject = {},
-            sanitizedOptions = (!!options) ? options : {},
-            index,
-            tempValue;
-
-        for(index in data[key]){
-            tempValue = data[key][index];
-
-            finalObject[index] = typeof tempValue !== 'function' ?
-                                    create(tempValue) : tempValue(sanitizedOptions[index]);
-        }
-
-        return finalObject;
+    function getTypeCheck(check) {
+        return isTypeOf('function')(check) ? check : isTypeOf(check);
     }
 
-    function buildArrayOf(key, count, options){
-        var arraySize = typeof count === 'number' ? count : 1,
-            outputArray = [],
-            index = 0;
-
-        while(index < arraySize){
-            outputArray.push(build(key, options));
-            index++;
-        }
-
-        return outputArray;
+    function isSafeObject(value) {
+        return isTypeOf('object')(value) && value !== null;
     }
 
-    function register(key, value){
+    function isInt (value){
+        return isTypeOf('number')(value) && Math.floor(value) === value;
+    }
+
+    function either(type) {
+        var typeCheck = getTypeCheck(type);
+
+        return function (fallback) {
+            return function (value) {
+                return typeCheck(value) ? value : fallback;
+            };
+        };
+    }
+
+    function repeat (operation){
+        return function (count) {
+            for(var i = 0; i < count; i++){
+                operation(i);
+            }
+        };
+    }
+
+    function create(value) {
+        return isTypeOf('object')(value) ? Object.create(value) : value;
+    }
+
+    function set(obj) {
+        return function (key, value) {
+            obj[key] = value;
+            return obj;
+        };
+    }
+
+    function buildProperty(dataObj, key, options, index) {
+        var tempValue = dataObj[key];
+
+        return isTypeOf('function')(tempValue) ?
+            tempValue(options[key], index) :
+            create(tempValue);
+    }
+
+    function buildAddProperty(dataObj, options, index) {
+        return function (finalObject, key) {
+            var newObj = buildProperty(dataObj, key, options, index);
+            return set(finalObject)(key, newObj);
+        };
+    }
+
+    function build(key, options, index) {
+        var cleanOptions = either(isSafeObject)({})(options);
+        var cleanIndex = isTypeOf('number')(index) ? index : 0;
+
+        return Object.keys(data[key])
+            .reduce(buildAddProperty(data[key], cleanOptions, index), {});
+    }
+
+    function buildArrayOf(key, count, options) {
+        var result = [];
+
+        repeat(function (index) {
+            result.push(build(key, options, index));
+        })(either('number')(1)(count));
+
+        return result;
+    }
+
+    function register(key, value) {
         data[key] = value;
     }
 
-    dataMother = {
+    function require (key){
+        return function (options) {
+            return build(key, options);
+        };
+    }
+
+    function getCount (key, options){
+        var cleanOptions = either(isSafeObject)({})(options);
+
+        return either(isInt)(1)(cleanOptions._count);
+    }
+
+    function requireArrayOf (key){
+        return function (options) {
+            var count = getCount(key, options);
+
+            return buildArrayOf(key, count, options);
+        };
+    }
+
+    return {
         build: build,
         buildArrayOf: buildArrayOf,
-        register: register
+        register: register,
+        require: require,
+        requireArrayOf: requireArrayOf
     };
 
 })();
@@ -54,6 +121,6 @@ var dataMother;
 // if it is being run in a browser environment.
 // If it is not in a browser, we'll export this
 // for use in node.
-if(typeof module !== 'undefined' && module.exports){
+if (typeof module !== 'undefined' && module.exports) {
     module.exports = dataMother;
 }
