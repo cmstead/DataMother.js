@@ -1,0 +1,67 @@
+[
+    {
+        "ownProperty": [
+            "foo",
+            "bar",
+            "baz"
+        ],
+        "nestedDependency": {
+            "foo": "bar",
+            "baz": [
+                "quux"
+            ]
+        }
+    },
+    {
+        "ownProperty": [
+            "foo",
+            "bar",
+            "baz"
+        ],
+        "nestedDependency": {
+            "foo": "bar",
+            "baz": [
+                "quux"
+            ]
+        }
+    },
+    {
+        "ownProperty": [
+            "foo",
+            "bar",
+            "baz"
+        ],
+        "nestedDependency": {
+            "foo": "bar",
+            "baz": [
+                "quux"
+            ]
+        }
+    },
+    {
+        "ownProperty": [
+            "foo",
+            "bar",
+            "baz"
+        ],
+        "nestedDependency": {
+            "foo": "bar",
+            "baz": [
+                "quux"
+            ]
+        }
+    },
+    {
+        "ownProperty": [
+            "foo",
+            "bar",
+            "baz"
+        ],
+        "nestedDependency": {
+            "foo": "bar",
+            "baz": [
+                "quux"
+            ]
+        }
+    }
+]

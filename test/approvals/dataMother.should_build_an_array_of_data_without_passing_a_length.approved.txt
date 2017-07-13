@@ -1,0 +1,15 @@
+[
+    {
+        "ownProperty": [
+            "foo",
+            "bar",
+            "baz"
+        ],
+        "nestedDependency": {
+            "foo": "bar",
+            "baz": [
+                "quux"
+            ]
+        }
+    }
+]
