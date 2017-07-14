@@ -25,25 +25,36 @@
 
         let motherFactories = {};
 
+        const buildRest = (name, length) => buildDataArray(name, length - 1);
+
         function buildDataArray(name, length = 1) {
             const dataArray = [buildData(name)];
-            const buildRest = () => buildDataArray(name, length - 1);
 
             return match(length, (matchCase, matchDefault) => {
                 matchCase(1, () => dataArray);
-                matchDefault(() => dataArray.concat(buildRest()));
+                matchDefault(() => dataArray.concat(buildRest(name, length)));
             });
         }
 
-        function buildData(name) {
-            const motherFactory = motherFactories[name];
-            const dependencies = motherFactory['@dependencies'].map(buildData);
+        function getDependencies(motherFactory) {
+            return motherFactory['@dependencies'].map(buildData);
+        }
 
-            return motherFactory.apply(null, dependencies);
+        function buildData(name) {
+            return match(
+                motherFactories[name],
+                function (matchCase, matchDefault, byType) {
+                    matchCase(byType('not<function>'), () => {
+                        throw new Error('Unable to find mother factory, ' + name);
+                    });
+                    matchDefault((motherFactory) =>
+                        motherFactory.apply(null, getDependencies(motherFactory)));
+                }
+            );
         }
 
         function register(name, factory) {
-            const depsArray = match(
+            factory['@dependencies'] = match(
                 factory['@dependencies'],
                 (matchCase, matchDefault, byType) => {
                     matchCase(byType('array'), (depsArray) => depsArray);
@@ -51,7 +62,6 @@
                 }
             );
 
-            factory['@dependencies'] = depsArray;
             motherFactories[name] = factory;
         }
 
