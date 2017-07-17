@@ -13,7 +13,7 @@
         }
 
         const matchlight = matchlightFactory(signet);
-        window.datMother = dataMotherBuilder(signet, matchlight);
+        window.dataMother = dataMotherBuilder(signet, matchlight);
     }
 
 })(function dataMotherBuilder(signet, matchlight) {

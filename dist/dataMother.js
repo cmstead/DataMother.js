@@ -17,7 +17,7 @@
         }
 
         var _matchlight = matchlightFactory(signet);
-        window.datMother = dataMotherBuilder(signet, _matchlight);
+        window.dataMother = dataMotherBuilder(signet, _matchlight);
     }
 })(function dataMotherBuilder(signet, matchlight) {
     'use strict';
