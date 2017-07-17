@@ -2,7 +2,7 @@
   "name": "datamother",
   "description": "DataMother.js - A data management and injection system for easier unit testing",
   "main": "index.js",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "scripts": {
     "test": "node ./node_modules/mocha/bin/mocha ./test/**/*.test.js"
   },
