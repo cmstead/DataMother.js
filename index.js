@@ -11,7 +11,7 @@
 
         const matchlight = matchlightFactory(signet);
 
-        window.dataMother = dataMotherBuilder(signet, matchlight);
+        window.dataMother = dataMotherBuilder(signet, matchlight)();
     }
 
 })(function dataMotherBuilder(signet, matchlight) {

@@ -13,7 +13,7 @@
 
         var _matchlight = matchlightFactory(signet);
 
-        window.dataMother = dataMotherBuilder(signet, _matchlight);
+        window.dataMother = dataMotherBuilder(signet, _matchlight)();
     }
 })(function dataMotherBuilder(signet, matchlight) {
     'use strict';
