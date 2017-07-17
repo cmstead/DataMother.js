@@ -4,7 +4,7 @@
     var isDefined = function isDefined(value) {
         return typeof value !== 'undefined';
     };
-    var isNode = isDefined(module) && isDefined(module.exports);
+    var isNode = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
 
     if (isNode) {
         var _signet = require('signet')();

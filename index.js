@@ -1,6 +1,6 @@
 (function (dataMotherBuilder) {
     const isDefined = (value) => typeof value !== 'undefined';
-    const isNode = isDefined(module) && isDefined(module.exports);
+    const isNode = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
 
     if (isNode) {
         const signet = require('signet')();
