@@ -1,5 +1,4 @@
 (function (dataMotherBuilder) {
-    const isDefined = (value) => typeof value !== 'undefined';
     const isNode = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
 
     if (isNode) {
@@ -8,11 +7,11 @@
 
         module.exports = dataMotherBuilder(signet, matchlight);
     } else {
-        const matchlight = matchlightFactory(signet);
-
-        if (!isDefined(matchlight) || !isDefined(signet)) {
+        if (typeof matchlightFactory === 'undefined' || typeof signet === 'undefined') {
             throw new Error('DataMother requires signet and Matchlight to work properly.');
         }
+
+        const matchlight = matchlightFactory(signet);
 
         window.dataMother = dataMotherBuilder(signet, matchlight);
     }

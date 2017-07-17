@@ -1,9 +1,6 @@
 'use strict';
 
 (function (dataMotherBuilder) {
-    var isDefined = function isDefined(value) {
-        return typeof value !== 'undefined';
-    };
     var isNode = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
 
     if (isNode) {
@@ -12,11 +9,11 @@
 
         module.exports = dataMotherBuilder(_signet, matchlight);
     } else {
-        var _matchlight = matchlightFactory(signet);
-
-        if (!isDefined(_matchlight) || !isDefined(signet)) {
+        if (typeof matchlightFactory === 'undefined' || typeof signet === 'undefined') {
             throw new Error('DataMother requires signet and Matchlight to work properly.');
         }
+
+        var _matchlight = matchlightFactory(signet);
 
         window.dataMother = dataMotherBuilder(signet, _matchlight);
     }
