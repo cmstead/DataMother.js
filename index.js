@@ -1,7 +1,5 @@
 (function (dataMotherBuilder) {
-    const isNode = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
-
-    if (isNode) {
+    if (typeof require === 'function') {
         const signet = require('signet')();
         const matchlight = require('matchlight')(signet);
 

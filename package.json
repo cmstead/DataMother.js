@@ -2,7 +2,7 @@
   "name": "datamother",
   "description": "DataMother.js - A data management and injection system for easier unit testing",
   "main": "index.js",
-  "version": "2.0.10",
+  "version": "2.0.11",
   "scripts": {
     "test": "node ./node_modules/mocha/bin/mocha ./test/**/*.test.js"
   },
@@ -30,7 +30,7 @@
     "quokka-signet-explorer": "^1.2.0"
   },
   "dependencies": {
-    "matchlight": "^1.2.1",
+    "matchlight": "^1.2.4",
     "signet": "^3.14.0"
   }
 }

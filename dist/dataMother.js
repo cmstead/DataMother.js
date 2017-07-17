@@ -1,9 +1,7 @@
 'use strict';
 
 (function (dataMotherBuilder) {
-    var isNode = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
-
-    if (isNode) {
+    if (typeof require === 'function') {
         var _signet = require('signet')();
         var matchlight = require('matchlight')(_signet);
 
