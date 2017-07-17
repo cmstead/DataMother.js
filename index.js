@@ -8,11 +8,12 @@
 
         module.exports = dataMotherBuilder(signet, matchlight);
     } else {
+        const matchlight = matchlightFactory(signet);
+
         if (!isDefined(matchlight) || !isDefined(signet)) {
             throw new Error('DataMother requires signet and Matchlight to work properly.');
         }
 
-        const matchlight = matchlightFactory(signet);
         window.dataMother = dataMotherBuilder(signet, matchlight);
     }
 
