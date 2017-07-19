@@ -47,27 +47,46 @@
             return motherFactory['@dependencies'].map(buildData);
         }
 
-        function buildData(name) {
+        function getFactoryOrThrow(name) {
+            var errorMessage = 'Unable to find mother factory, \'' + name + '\'';
+            var throwError = function throwError() {
+                throw new Error(errorMessage);
+            };
+
             return match(motherFactories[name], function (matchCase, matchDefault, byType) {
-                matchCase(byType('not<function>'), function () {
-                    throw new Error('Unable to find mother factory, ' + name);
-                });
+                matchCase(byType('not<function>'), throwError);
                 matchDefault(function (motherFactory) {
-                    return motherFactory.apply(null, getDependencies(motherFactory));
+                    return motherFactory;
+                });
+            });
+        }
+
+        function constructData(motherFactory) {
+            var dependencyData = getDependencies(motherFactory);
+            return motherFactory.apply(null, dependencyData);
+        }
+
+        function buildData(name, options) {
+            var motherFactory = getFactoryOrThrow(name);
+
+            return match(options, function (matchCase, matchDefault) {
+                matchDefault(function () {
+                    return constructData(motherFactory);
                 });
             });
         }
 
         function register(name, factory) {
-            factory['@dependencies'] = match(factory['@dependencies'], function (matchCase, matchDefault, byType) {
-                matchCase(byType('array'), function (depsArray) {
-                    return depsArray;
+            var dependencies = match(factory['@dependencies'], function (matchCase, matchDefault, byType) {
+                matchCase(byType('array'), function (dependencies) {
+                    return dependencies;
                 });
                 matchDefault(function () {
                     return [];
                 });
             });
 
+            factory['@dependencies'] = dependencies;
             motherFactories[name] = factory;
         }
 

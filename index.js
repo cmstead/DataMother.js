@@ -38,28 +38,38 @@
             return motherFactory['@dependencies'].map(buildData);
         }
 
-        function buildData(name) {
-            return match(
-                motherFactories[name],
-                function (matchCase, matchDefault, byType) {
-                    matchCase(byType('not<function>'), () => {
-                        throw new Error('Unable to find mother factory, ' + name);
-                    });
-                    matchDefault((motherFactory) =>
-                        motherFactory.apply(null, getDependencies(motherFactory)));
-                }
-            );
+        function getFactoryOrThrow(name) {
+            const errorMessage = `Unable to find mother factory, '${name}'`;
+            const throwError = () => { throw new Error(errorMessage); };
+
+            return match(motherFactories[name], (matchCase, matchDefault, byType) => {
+                matchCase(byType('not<function>'), throwError);
+                matchDefault((motherFactory) => motherFactory);
+            });
+        }
+
+        function constructData(motherFactory) {
+            const dependencyData = getDependencies(motherFactory);
+            return motherFactory.apply(null, dependencyData);
+        }
+
+        function buildData(name, options) {
+            const motherFactory = getFactoryOrThrow(name);
+
+            return match(options, (matchCase, matchDefault) => {
+                matchDefault(() => constructData(motherFactory));
+            });
         }
 
         function register(name, factory) {
-            factory['@dependencies'] = match(
+            const dependencies = match(
                 factory['@dependencies'],
                 (matchCase, matchDefault, byType) => {
-                    matchCase(byType('array'), (depsArray) => depsArray);
+                    matchCase(byType('array'), (dependencies) => dependencies);
                     matchDefault(() => []);
-                }
-            );
+                });
 
+            factory['@dependencies'] = dependencies;
             motherFactories[name] = factory;
         }
 
