@@ -25,13 +25,11 @@
         var motherFactories = {};
 
         var buildRest = function buildRest(name, length) {
-            return buildDataArray(name, length - 1);
+            return buildDataObjectArray(name, length - 1);
         };
 
-        function buildDataArray(name) {
-            var length = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-            var dataArray = [buildData(name)];
+        function buildDataObjectArray(name, length) {
+            var dataArray = [buildDataObject(name)];
 
             return match(length, function (matchCase, matchDefault) {
                 matchCase(1, function () {
@@ -41,6 +39,12 @@
                     return dataArray.concat(buildRest(name, length));
                 });
             });
+        }
+
+        function buildDataArray(name) {
+            var length = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+            return buildDataObjectArray(name, length).map(constructProperties);
         }
 
         function getDependencies(motherFactory) {
@@ -66,7 +70,39 @@
             return motherFactory.apply(null, dependencyData);
         }
 
-        function buildData(name, options) {
+        function constructProperty(value, index) {
+            return match(value, function (matchCase, matchDefault, byType) {
+                matchCase(byType('function'), function (dataFactory) {
+                    return dataFactory(index);
+                });
+                matchDefault(function (value) {
+                    return value;
+                });
+            });
+        }
+
+        var buildConstructAction = function buildConstructAction(data, index) {
+            return function (key) {
+                return data[key] = constructProperty(data[key], index);
+            };
+        };
+
+        function constructProperties(dataOutput) {
+            var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+            return match(dataOutput, function (matchCase, matchDefault, byType) {
+                matchCase(byType('composite<not<null>, object>'), function (dataOutput) {
+                    var keys = Object.keys(dataOutput);
+                    keys.forEach(buildConstructAction(dataOutput, index));
+                    return dataOutput;
+                });
+                matchDefault(function (dataOutput) {
+                    return dataOutput;
+                });
+            });
+        }
+
+        function buildDataObject(name, options) {
             var motherFactory = getFactoryOrThrow(name);
 
             return match(options, function (matchCase, matchDefault) {
@@ -74,6 +110,11 @@
                     return constructData(motherFactory);
                 });
             });
+        }
+
+        function buildData(name, options) {
+            var dataOutput = buildDataObject(name, options);
+            return constructProperties(dataOutput);
         }
 
         function register(name, factory) {
