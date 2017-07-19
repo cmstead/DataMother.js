@@ -58,10 +58,28 @@ module.exports = nestedTestData;
 })()
 ```
 
-
 - **Capturing data from DataMother is as easy as the following:**
 
 ```
 const simpleData = dataMother.buildData('simpleTestData');
 const simpleData = dataMother.buildDataArray('simpleTestData', 5);
+```
+
+
+- **Properties can be data factories so data can be dynamically generated per test**
+
+```
+'use strict';
+
+function testDataWithPropertyFactory () {
+    return {
+        property1: 'foo',
+        property2: function (index) {
+            // index always starts at 0
+            return 'bar' + index;
+        }
+    };
+}
+
+module.exports = testDataWithPropertyFactory;
 ```
