@@ -23,15 +23,19 @@
 
         let motherFactories = {};
 
-        const buildRest = (name, length) => buildDataArray(name, length - 1);
+        const buildRest = (name, length) => buildDataObjectArray(name, length - 1);
 
-        function buildDataArray(name, length = 1) {
-            const dataArray = [buildData(name)];
+        function buildDataObjectArray(name, length) {
+            const dataArray = [buildDataObject(name)];
 
             return match(length, (matchCase, matchDefault) => {
                 matchCase(1, () => dataArray);
                 matchDefault(() => dataArray.concat(buildRest(name, length)));
             });
+        }
+
+        function buildDataArray(name, length = 1) {
+            return buildDataObjectArray(name, length).map(constructProperties);
         }
 
         function getDependencies(motherFactory) {
@@ -53,12 +57,45 @@
             return motherFactory.apply(null, dependencyData);
         }
 
-        function buildData(name, options) {
+        function constructProperty(value, index) {
+            return match(
+                value,
+                (matchCase, matchDefault, byType) => {
+                    matchCase(byType('function'), (dataFactory) => dataFactory(index));
+                    matchDefault((value) => value);
+                });
+        }
+
+        const buildConstructAction = (data, index) => {
+            return (key) => data[key] = constructProperty(data[key], index)
+        };
+
+        function constructProperties(dataOutput, index = 0) {
+            return match(
+                dataOutput,
+                (matchCase, matchDefault, byType) => {
+                    matchCase(byType('composite<not<null>, object>'),
+                        (dataOutput) => {
+                            const keys = Object.keys(dataOutput);
+                            keys.forEach(buildConstructAction(dataOutput, index));
+                            return dataOutput;
+                        });
+                    matchDefault((dataOutput) => dataOutput);
+                }
+            );
+        }
+
+        function buildDataObject(name, options) {
             const motherFactory = getFactoryOrThrow(name);
 
             return match(options, (matchCase, matchDefault) => {
                 matchDefault(() => constructData(motherFactory));
             });
+        }
+
+        function buildData(name, options) {
+            let dataOutput = buildDataObject(name, options);
+            return constructProperties(dataOutput);
         }
 
         function register(name, factory) {
