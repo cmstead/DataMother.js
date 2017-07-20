@@ -72,21 +72,18 @@
                 : (undefined);
         }
 
-        function constructAndAttachProperty(index) {
+        const constructAndAttachProperty = (index) => (data, key) => {
+            const optionsData = getOptionsData();
 
-            return function (data, key) {
-                const constructedProperty = match(
-                    data[key],
-                    (matchCase, matchDefault) => {
-                        matchCase(isFunction,
-                            (dataFactory) => dataFactory(index, getOptionsData()));
-                        matchDefault((value) => value);
-                    });
+            const property = match(data[key], (matchCase, matchDefault) => {
+                matchCase(isFunction,
+                    (dataFactory) => dataFactory(index, optionsData));
+                matchDefault((value) => value);
+            });
 
-                return set(data, key, constructedProperty);
-            };
+            return set(data, key, property);
+        };
 
-        }
 
         function constructFactoryProps(dataOutput, index) {
             return Object
@@ -95,14 +92,11 @@
         }
 
         function constructProperties(dataOutput, index = 0) {
-            return match(
-                dataOutput,
-                (matchCase, matchDefault) => {
-                    matchCase(isObjectInstace,
-                        (dataOutput) => constructFactoryProps(dataOutput, index));
-                    matchDefault((dataOutput) => dataOutput);
-                }
-            );
+            return match(dataOutput, (matchCase, matchDefault) => {
+                matchCase(isObjectInstace,
+                    (dataOutput) => constructFactoryProps(dataOutput, index));
+                matchDefault((dataOutput) => dataOutput);
+            });
         }
 
         function buildDataObjectArray(length) {
@@ -142,8 +136,7 @@
             const dataBuilderApi = buildDataBuilderApi(name, options);
             const { constructProperties, buildDataObjectArray } = dataBuilderApi;
 
-            return buildDataObjectArray(length)
-                .map((value, index) => constructProperties(value, index));
+            return buildDataObjectArray(length).map(constructProperties);
         }
 
         function buildData(name, options) {
@@ -154,15 +147,13 @@
         }
 
         function register(name, factory) {
-            const dependencies = match(
-                factory['@dependencies'],
-                (matchCase, matchDefault) => {
+            const dependencies =
+                match(factory['@dependencies'], (matchCase, matchDefault) => {
                     matchCase(isArray, (dependencies) => dependencies);
                     matchDefault(() => []);
                 });
 
-            factory['@dependencies'] = dependencies;
-            motherFactories[name] = factory;
+            motherFactories[name] = set(factory, '@dependencies', dependencies);
         }
 
         return {

@@ -33,6 +33,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var isNotFunction = signet.isTypeOf('not<function>');
     var isDefined = signet.isTypeOf('not<undefined>');
 
+    var set = function set(data, key, value) {
+        data[key] = value;return data;
+    };
+
     function helpersFactory(motherFactories) {
 
         var throwError = function throwError(errorMessage) {
@@ -67,10 +71,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         };
     }
 
-    var set = function set(data, key, value) {
-        data[key] = value;return data;
-    };
-
     function dataBuilderApiFactory(name, options, buildData, helpers, match) {
         var getFactoryOrThrow = helpers.getFactoryOrThrow,
             throwOnBadOptionsObject = helpers.throwOnBadOptionsObject;
@@ -82,21 +82,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             return (typeof options === 'undefined' ? 'undefined' : _typeof(options)) === 'object' ? options.optionsData : undefined;
         }
 
-        function constructAndAttachProperty(index) {
-
+        var constructAndAttachProperty = function constructAndAttachProperty(index) {
             return function (data, key) {
-                var constructedProperty = match(data[key], function (matchCase, matchDefault) {
+                var optionsData = getOptionsData();
+
+                var property = match(data[key], function (matchCase, matchDefault) {
                     matchCase(isFunction, function (dataFactory) {
-                        return dataFactory(index, getOptionsData());
+                        return dataFactory(index, optionsData);
                     });
                     matchDefault(function (value) {
                         return value;
                     });
                 });
 
-                return set(data, key, constructedProperty);
+                return set(data, key, property);
             };
-        }
+        };
 
         function constructFactoryProps(dataOutput, index) {
             return Object.keys(dataOutput).reduce(constructAndAttachProperty(index), dataOutput);
@@ -162,9 +163,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 buildDataObjectArray = dataBuilderApi.buildDataObjectArray;
 
 
-            return buildDataObjectArray(length).map(function (value, index) {
-                return constructProperties(value, index);
-            });
+            return buildDataObjectArray(length).map(constructProperties);
         }
 
         function buildData(name, options) {
@@ -186,8 +185,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 });
             });
 
-            factory['@dependencies'] = dependencies;
-            motherFactories[name] = factory;
+            motherFactories[name] = set(factory, '@dependencies', dependencies);
         }
 
         return {
