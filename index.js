@@ -23,14 +23,16 @@
         dataOptions: '?composite<^null, ^array, object>'
     };
 
+
     const isOptionsObject = signet.duckTypeFactory(optionsDefinition);
     const isObjectInstace = signet.isTypeOf('composite<not<null>, object>');
     const isArray = signet.isTypeOf('array');
     const isFunction = signet.isTypeOf('function');
-    const isNotFunction = signet.isTypeOf('not<function>');
     const isDefined = signet.isTypeOf('not<undefined>');
 
+    const isNotFunction = (value) => !isFunction(value);
     const set = (data, key, value) => { data[key] = value; return data; };
+
 
     function helpersFactory(motherFactories) {
 
