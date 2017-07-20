@@ -25,94 +25,89 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var optionsDefinition = {
         dataOptions: '?composite<^null, ^array, object>'
     };
+
     var isOptionsObject = signet.duckTypeFactory(optionsDefinition);
+    var isObjectInstace = signet.isTypeOf('composite<not<null>, object>');
+    var isArray = signet.isTypeOf('array');
+    var isFunction = signet.isTypeOf('function');
+    var isNotFunction = signet.isTypeOf('not<function>');
+    var isDefined = signet.isTypeOf('not<undefined>');
 
-    function throwOnBadOptionsObject(options) {
-        if (typeof options !== 'undefined' && !isOptionsObject(options)) {
-            var optionsDefinitionString = JSON.stringify(optionsDefinition, null, 4);
-            var errorMessage = 'Invalid options object. Expected value like ' + optionsDefinitionString;
+    function helpersFactory(motherFactories) {
+
+        var throwError = function throwError(errorMessage) {
             throw new Error(errorMessage);
-        }
-    }
-
-    return function dataMother() {
-
-        var motherFactories = {};
-
-        var buildRest = function buildRest(name, length) {
-            return buildDataObjectArray(name, length - 1);
         };
-
-        function buildDataObjectArray(name, length, options) {
-            var dataArray = [buildDataObject(name, options)];
-
-            return match(length, function (matchCase, matchDefault) {
-                matchCase(1, function () {
-                    return dataArray;
-                });
-                matchDefault(function () {
-                    return dataArray.concat(buildRest(name, length));
-                });
-            });
-        }
-
-        function buildDataArray(name) {
-            var length = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-            var options = arguments[2];
-
-            throwOnBadOptionsObject(options);
-            return buildDataObjectArray(name, length, options).map(function (value, index) {
-                return constructProperties(value, index, options);
-            });
-        }
 
         function getFactoryOrThrow(name) {
             var errorMessage = 'Unable to find mother factory, \'' + name + '\'';
-            var throwError = function throwError() {
-                throw new Error(errorMessage);
-            };
 
-            return match(motherFactories[name], function (matchCase, matchDefault, byType) {
-                matchCase(byType('not<function>'), throwError);
+            return match(motherFactories[name], function (matchCase, matchDefault) {
+                matchCase(isNotFunction, function () {
+                    return throwError(errorMessage);
+                });
                 matchDefault(function (motherFactory) {
                     return motherFactory;
                 });
             });
         }
 
-        function constructProperty(value, index, options) {
-            return match(value, function (matchCase, matchDefault, byType) {
-                matchCase(byType('function'), function (dataFactory) {
-                    return dataFactory(index, options);
-                });
-                matchDefault(function (value) {
-                    return value;
-                });
-            });
+        function throwOnBadOptionsObject(options) {
+            if (isDefined(options) && !isOptionsObject(options)) {
+                var optionsDefinitionString = JSON.stringify(optionsDefinition, null, 4);
+                var errorMessage = 'Invalid options object. Expected value like ' + optionsDefinitionString;
+
+                throwError(errorMessage);
+            }
         }
 
-        var set = function set(data, key, value) {
-            data[key] = value;return data;
+        return {
+            getFactoryOrThrow: getFactoryOrThrow,
+            throwOnBadOptionsObject: throwOnBadOptionsObject
         };
-        var get = function get(data, key) {
-            return (typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object' ? data[key] : undefined;
-        };
+    }
 
-        function constructFactoryProps(dataOutput, index, options) {
-            var optionsData = get(options, 'optionsData');
-            return Object.keys(dataOutput).reduce(function (data, key) {
-                var constructedProperty = constructProperty(data[key], index, optionsData);
+    var set = function set(data, key, value) {
+        data[key] = value;return data;
+    };
+
+    function dataBuilderApiFactory(name, options, buildData, helpers, match) {
+        var getFactoryOrThrow = helpers.getFactoryOrThrow,
+            throwOnBadOptionsObject = helpers.throwOnBadOptionsObject;
+
+
+        throwOnBadOptionsObject(options);
+
+        function getOptionsData() {
+            return (typeof options === 'undefined' ? 'undefined' : _typeof(options)) === 'object' ? options.optionsData : undefined;
+        }
+
+        function constructAndAttachProperty(index) {
+
+            return function (data, key) {
+                var constructedProperty = match(data[key], function (matchCase, matchDefault) {
+                    matchCase(isFunction, function (dataFactory) {
+                        return dataFactory(index, getOptionsData());
+                    });
+                    matchDefault(function (value) {
+                        return value;
+                    });
+                });
+
                 return set(data, key, constructedProperty);
-            }, dataOutput);
+            };
+        }
+
+        function constructFactoryProps(dataOutput, index) {
+            return Object.keys(dataOutput).reduce(constructAndAttachProperty(index), dataOutput);
         }
 
         function constructProperties(dataOutput) {
             var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-            var options = arguments[2];
 
-            return match(dataOutput, function (matchCase, matchDefault, byType) {
-                matchCase(byType('composite<not<null>, object>'), function (dataOutput) {
-                    return constructFactoryProps(dataOutput, index, options);
+            return match(dataOutput, function (matchCase, matchDefault) {
+                matchCase(isObjectInstace, function (dataOutput) {
+                    return constructFactoryProps(dataOutput, index);
                 });
                 matchDefault(function (dataOutput) {
                     return dataOutput;
@@ -120,37 +115,70 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             });
         }
 
-        function getDependencies(motherFactory, options) {
-            return motherFactory['@dependencies'].map(function (value) {
-                return buildData(value, options);
-            });
-        }
+        function buildDataObjectArray(length) {
+            var dataArray = [buildDataObject()];
 
-        function constructData(motherFactory, options) {
-            var dependencyData = getDependencies(motherFactory, options);
-            return motherFactory.apply(null, dependencyData);
-        }
-
-        function buildDataObject(name, options) {
-            var motherFactory = getFactoryOrThrow(name);
-
-            return match(options, function (matchCase, matchDefault) {
+            return match(length, function (matchCase, matchDefault) {
+                matchCase(1, function () {
+                    return dataArray;
+                });
                 matchDefault(function () {
-                    return constructData(motherFactory, options);
+                    return dataArray.concat(buildDataObjectArray(length - 1));
                 });
             });
         }
 
-        function buildData(name, options) {
-            throwOnBadOptionsObject(options);
+        function buildDataObject() {
+            var motherFactory = getFactoryOrThrow(name);
+            var dependencyData = motherFactory['@dependencies'].map(function (value) {
+                return buildData(value, options);
+            });
 
-            var dataOutput = buildDataObject(name, options);
-            return constructProperties(dataOutput, 0, options);
+            return motherFactory.apply(null, dependencyData);
+        }
+
+        return {
+            buildDataObject: buildDataObject,
+            buildDataObjectArray: buildDataObjectArray,
+            constructProperties: constructProperties
+        };
+    }
+
+    return function dataMother() {
+
+        var motherFactories = {};
+        var helpers = helpersFactory(motherFactories, buildData);
+
+        function buildDataBuilderApi(name, options) {
+            return dataBuilderApiFactory(name, options, buildData, helpers, match);
+        }
+
+        function buildDataArray(name) {
+            var length = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+            var options = arguments[2];
+
+            var dataBuilderApi = buildDataBuilderApi(name, options);
+            var constructProperties = dataBuilderApi.constructProperties,
+                buildDataObjectArray = dataBuilderApi.buildDataObjectArray;
+
+
+            return buildDataObjectArray(length).map(function (value, index) {
+                return constructProperties(value, index);
+            });
+        }
+
+        function buildData(name, options) {
+            var dataBuilderApi = buildDataBuilderApi(name, options);
+            var constructProperties = dataBuilderApi.constructProperties,
+                buildDataObject = dataBuilderApi.buildDataObject;
+
+
+            return constructProperties(buildDataObject(), 0);
         }
 
         function register(name, factory) {
-            var dependencies = match(factory['@dependencies'], function (matchCase, matchDefault, byType) {
-                matchCase(byType('array'), function (dependencies) {
+            var dependencies = match(factory['@dependencies'], function (matchCase, matchDefault) {
+                matchCase(isArray, function (dependencies) {
                     return dependencies;
                 });
                 matchDefault(function () {

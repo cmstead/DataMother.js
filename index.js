@@ -22,109 +22,142 @@
     const optionsDefinition = {
         dataOptions: '?composite<^null, ^array, object>'
     };
+
     const isOptionsObject = signet.duckTypeFactory(optionsDefinition);
+    const isObjectInstace = signet.isTypeOf('composite<not<null>, object>');
+    const isArray = signet.isTypeOf('array');
+    const isFunction = signet.isTypeOf('function');
+    const isNotFunction = signet.isTypeOf('not<function>');
+    const isDefined = signet.isTypeOf('not<undefined>');
 
-    function throwOnBadOptionsObject(options) {
-        if (typeof options !== 'undefined' && !isOptionsObject(options)) {
-            const optionsDefinitionString = JSON.stringify(optionsDefinition, null, 4);
-            const errorMessage = `Invalid options object. Expected value like ${optionsDefinitionString}`;
-            throw new Error(errorMessage);
-        }
-    }
+    function helpersFactory(motherFactories) {
 
-    return function dataMother() {
-
-        let motherFactories = {};
-
-        const buildRest = (name, length) => buildDataObjectArray(name, length - 1);
-
-        function buildDataObjectArray(name, length, options) {
-            const dataArray = [buildDataObject(name, options)];
-
-            return match(length, (matchCase, matchDefault) => {
-                matchCase(1, () => dataArray);
-                matchDefault(() => dataArray.concat(buildRest(name, length)));
-            });
-        }
-
-        function buildDataArray(name, length = 1, options) {
-            throwOnBadOptionsObject(options);
-            return buildDataObjectArray(name, length, options)
-                .map((value, index) => constructProperties(value, index, options));
-        }
+        const throwError = (errorMessage) => { throw new Error(errorMessage); };
 
         function getFactoryOrThrow(name) {
             const errorMessage = `Unable to find mother factory, '${name}'`;
-            const throwError = () => { throw new Error(errorMessage); };
 
-            return match(motherFactories[name], (matchCase, matchDefault, byType) => {
-                matchCase(byType('not<function>'), throwError);
+            return match(motherFactories[name], (matchCase, matchDefault) => {
+                matchCase(isNotFunction, () => throwError(errorMessage));
                 matchDefault((motherFactory) => motherFactory);
             });
         }
 
-        function constructProperty(value, index, options) {
-            return match(
-                value,
-                (matchCase, matchDefault, byType) => {
-                    matchCase(byType('function'), (dataFactory) => dataFactory(index, options));
-                    matchDefault((value) => value);
-                });
+        function throwOnBadOptionsObject(options) {
+            if (isDefined(options) && !isOptionsObject(options)) {
+                const optionsDefinitionString = JSON.stringify(optionsDefinition, null, 4);
+                const errorMessage = `Invalid options object. Expected value like ${optionsDefinitionString}`;
+
+                throwError(errorMessage);
+            }
         }
 
-        const set = (data, key, value) => { data[key] = value; return data; };
-        const get = (data, key) => typeof data === 'object' ? data[key] : (undefined);
+        return {
+            getFactoryOrThrow: getFactoryOrThrow,
+            throwOnBadOptionsObject: throwOnBadOptionsObject
+        };
 
-        function constructFactoryProps(dataOutput, index, options) {
-            const optionsData = get(options, 'optionsData');
+    }
+
+    const set = (data, key, value) => { data[key] = value; return data; };
+
+    function dataBuilderApiFactory(name, options, buildData, helpers, match) {
+        const { getFactoryOrThrow, throwOnBadOptionsObject } = helpers;
+
+        throwOnBadOptionsObject(options);
+
+        function getOptionsData() {
+            return typeof options === 'object'
+                ? options.optionsData
+                : (undefined);
+        }
+
+        function constructAndAttachProperty(index) {
+
+            return function (data, key) {
+                const constructedProperty = match(
+                    data[key],
+                    (matchCase, matchDefault) => {
+                        matchCase(isFunction,
+                            (dataFactory) => dataFactory(index, getOptionsData()));
+                        matchDefault((value) => value);
+                    });
+
+                return set(data, key, constructedProperty);
+            };
+
+        }
+
+        function constructFactoryProps(dataOutput, index) {
             return Object
                 .keys(dataOutput)
-                .reduce((data, key) => {
-                    const constructedProperty = constructProperty(data[key], index, optionsData);
-                    return set(data, key, constructedProperty);
-                }, dataOutput);
+                .reduce(constructAndAttachProperty(index), dataOutput);
         }
 
-        function constructProperties(dataOutput, index = 0, options) {
+        function constructProperties(dataOutput, index = 0) {
             return match(
                 dataOutput,
-                (matchCase, matchDefault, byType) => {
-                    matchCase(byType('composite<not<null>, object>'),
-                        (dataOutput) => constructFactoryProps(dataOutput, index, options));
+                (matchCase, matchDefault) => {
+                    matchCase(isObjectInstace,
+                        (dataOutput) => constructFactoryProps(dataOutput, index));
                     matchDefault((dataOutput) => dataOutput);
                 }
             );
         }
 
-        function getDependencies(motherFactory, options) {
-            return motherFactory['@dependencies'].map((value) => buildData(value, options));
-        }
+        function buildDataObjectArray(length) {
+            const dataArray = [buildDataObject()];
 
-        function constructData(motherFactory, options) {
-            const dependencyData = getDependencies(motherFactory, options);
-            return motherFactory.apply(null, dependencyData);
-        }
-
-        function buildDataObject(name, options) {
-            const motherFactory = getFactoryOrThrow(name);
-
-            return match(options, (matchCase, matchDefault) => {
-                matchDefault(() => constructData(motherFactory, options));
+            return match(length, (matchCase, matchDefault) => {
+                matchCase(1, () => dataArray);
+                matchDefault(() => dataArray.concat(buildDataObjectArray(length - 1)));
             });
         }
 
-        function buildData(name, options) {
-            throwOnBadOptionsObject(options);
+        function buildDataObject() {
+            const motherFactory = getFactoryOrThrow(name);
+            const dependencyData = motherFactory['@dependencies']
+                .map((value) => buildData(value, options));
 
-            let dataOutput = buildDataObject(name, options);
-            return constructProperties(dataOutput, 0, options);
+            return motherFactory.apply(null, dependencyData);
+        }
+
+        return {
+            buildDataObject: buildDataObject,
+            buildDataObjectArray: buildDataObjectArray,
+            constructProperties: constructProperties
+        };
+    }
+
+    return function dataMother() {
+
+        let motherFactories = {};
+        const helpers = helpersFactory(motherFactories, buildData);
+
+        function buildDataBuilderApi(name, options) {
+            return dataBuilderApiFactory(name, options, buildData, helpers, match)
+        }
+
+        function buildDataArray(name, length = 1, options) {
+            const dataBuilderApi = buildDataBuilderApi(name, options);
+            const { constructProperties, buildDataObjectArray } = dataBuilderApi;
+
+            return buildDataObjectArray(length)
+                .map((value, index) => constructProperties(value, index));
+        }
+
+        function buildData(name, options) {
+            const dataBuilderApi = buildDataBuilderApi(name, options);
+            const { constructProperties, buildDataObject } = dataBuilderApi;
+
+            return constructProperties(buildDataObject(), 0);
         }
 
         function register(name, factory) {
             const dependencies = match(
                 factory['@dependencies'],
-                (matchCase, matchDefault, byType) => {
-                    matchCase(byType('array'), (dependencies) => dependencies);
+                (matchCase, matchDefault) => {
+                    matchCase(isArray, (dependencies) => dependencies);
                     matchDefault(() => []);
                 });
 
