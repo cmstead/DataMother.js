@@ -57,7 +57,36 @@ describe('dataMother', function () {
     });
 
     it('should call a function on a build array command', function () {
-        let result = motherContainer.buildDataArray('testDataWithPropertyFactory', 3);
+        let result = motherContainer.buildDataArray('testDataWithPropertyFactory', 5);
+        this.verify(prettyJson(result));
+    });
+
+    it('should throw an error when options object is malformed', function () {
+        let testCall = motherContainer.buildData.bind(null, 'singleValueData', null);
+        assert.throws(testCall);
+    });
+
+    it('should construct data using provided properties', function () {
+        const options = {
+            optionsData: {
+                testDataWithPropertyFactory: {
+                    value: 'testValue'
+                }
+            }
+        }
+        let result = motherContainer.buildData('testDataWithPropertyFactory', options);
+        this.verify(prettyJson(result));
+    });
+
+    it('should construct data array using provided properties', function () {
+        const options = {
+            optionsData: {
+                testDataWithPropertyFactory: {
+                    value: 'testValue'
+                }
+            }
+        }
+        let result = motherContainer.buildDataArray('testDataWithPropertyFactory', 3, options);
         this.verify(prettyJson(result));
     });
 

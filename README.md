@@ -11,10 +11,10 @@ This is the basic API, examples are listed below.
 - dataMother.register -- `name:string, factory:function => undefined`
     - Register registers a mother object with DataMother for data creation later. Register requires a key and an object and returns undefined.
 
-- dataMother.buildData -- `name:string => *`
+- dataMother.buildData -- `name:string, options:[object] => *`
     - Build returns a new instance of test data as well as nested instances of depency objects.
 
-- dataMother.buildDataArray -- `name:string, length:[leftBoundedInt<1>] => array<*>`
+- dataMother.buildDataArray -- `name:string, length:variant<undefined, leftBoundedInt<1>>, options:[object] => array<*>`
     - BuildDataArray returns a new array of data containing a number of data elements equal to the length passed in.  When no length is provided, the length will be 1.
 
 ## Examples ##
@@ -82,4 +82,21 @@ function testDataWithPropertyFactory () {
 }
 
 module.exports = testDataWithPropertyFactory;
+```
+- **Data can be constructed with data properties via the options object**
+
+```
+const options = {
+    optionsData: {
+        testDataWithPropertyFactory: {
+            value: 'testValue'
+        }
+    }
+}
+
+// Constructing a single data value
+motherContainer.buildData('testDataWithPropertyFactory', options);
+
+// Constructing an array of data
+motherContainer.buildDataArray('testDataWithPropertyFactory', 3, options);
 ```

@@ -1,0 +1,14 @@
+[
+    {
+        "property1": "foo",
+        "property2": "testValue0"
+    },
+    {
+        "property1": "foo",
+        "property2": "testValue1"
+    },
+    {
+        "property1": "foo",
+        "property2": "testValue2"
+    }
+]

@@ -1,14 +1,22 @@
 [
     {
         "property1": "foo",
-        "property2": "bar0"
+        "property2": "bar"
     },
     {
         "property1": "foo",
-        "property2": "bar1"
+        "property2": "baz"
     },
     {
         "property1": "foo",
-        "property2": "bar2"
+        "property2": "quux"
+    },
+    {
+        "property1": "foo",
+        "property2": "bar"
+    },
+    {
+        "property1": "foo",
+        "property2": "baz"
     }
 ]
