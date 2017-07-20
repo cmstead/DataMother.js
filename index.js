@@ -30,6 +30,8 @@
     const isNotFunction = signet.isTypeOf('not<function>');
     const isDefined = signet.isTypeOf('not<undefined>');
 
+    const set = (data, key, value) => { data[key] = value; return data; };
+
     function helpersFactory(motherFactories) {
 
         const throwError = (errorMessage) => { throw new Error(errorMessage); };
@@ -58,8 +60,6 @@
         };
 
     }
-
-    const set = (data, key, value) => { data[key] = value; return data; };
 
     function dataBuilderApiFactory(name, options, buildData, helpers, match) {
         const { getFactoryOrThrow, throwOnBadOptionsObject } = helpers;
