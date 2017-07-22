@@ -2,13 +2,16 @@
   "name": "datamother",
   "description": "DataMother.js - A data management and injection system for easier unit testing",
   "main": "index.js",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "scripts": {
     "test": "node ./node_modules/mocha/bin/mocha ./test/**/*.test.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/cmstead/DataMother.js.git"
+  },
+  "engines": {
+    "node": ">=6.0.0"
   },
   "devDependencies": {
     "approvals": "^2.1.2",
