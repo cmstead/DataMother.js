@@ -33,7 +33,7 @@
     "quokka-signet-explorer": "^1.2.0"
   },
   "dependencies": {
-    "matchlight": "^1.2.6",
-    "signet": "^4.0.1"
+    "matchlight": "^1.2.7",
+    "signet": "^6.5.3"
   }
 }
