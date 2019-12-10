@@ -1,6 +1,6 @@
 {
   "name": "datamother",
-  "description": "DataMother.js - A data management and injection system for easier unit testing",
+  "description": "DataMother - Simplify your test data management",
   "main": "index.js",
   "version": "2.2.5",
   "scripts": {
